@@ -7,7 +7,8 @@ import type { IPosition } from '../types/positionTypes';
  */
 export class World {
   private maps: GameMap[] = [];
-  private unitPositions: Map<string, { mapId: string; position: Position }> = new Map<string, { mapId: string; position: Position }>();
+  private unitPositions: Map<string, { mapId: string; position: Position }> =
+    new Map<string, { mapId: string; position: Position }>();
 
   constructor() {
     // Initialize the world
@@ -63,7 +64,9 @@ export class World {
   /**
    * Get the position of a unit in the world
    */
-  getUnitPosition(unitId: string): { mapId: string; position: Position } | undefined {
+  getUnitPosition(
+    unitId: string
+  ): { mapId: string; position: Position } | undefined {
     return this.unitPositions.get(unitId);
   }
 
@@ -98,7 +101,7 @@ export class World {
     // Update the unit's position in the world
     this.unitPositions.set(unitId, {
       mapId,
-      position: new Position(position.x, position.y, position.z)
+      position: new Position(position.x, position.y, position.z),
     });
 
     return true;
@@ -157,7 +160,7 @@ export class World {
     // Update the unit's position in the world
     this.unitPositions.set(unitId, {
       mapId: currentPos.mapId,
-      position: new Position(newX, newY)
+      position: new Position(newX, newY),
     });
 
     return true;
@@ -166,7 +169,12 @@ export class World {
   /**
    * Move a unit to a different map
    */
-  moveUnitToMap(unitId: string, newMapId: string, newX: number, newY: number): boolean {
+  moveUnitToMap(
+    unitId: string,
+    newMapId: string,
+    newX: number,
+    newY: number
+  ): boolean {
     const currentPos = this.unitPositions.get(unitId);
     if (!currentPos) {
       return false;
@@ -193,7 +201,11 @@ export class World {
     if (!newMap.placeUnit(unitId, newX, newY)) {
       // If placement fails, try to put back on old map
       if (currentMap) {
-        currentMap.placeUnit(unitId, currentPos.position.x, currentPos.position.y);
+        currentMap.placeUnit(
+          unitId,
+          currentPos.position.x,
+          currentPos.position.y
+        );
       }
       return false;
     }
@@ -201,7 +213,7 @@ export class World {
     // Update the unit's position in the world
     this.unitPositions.set(unitId, {
       mapId: newMapId,
-      position: new Position(newX, newY)
+      position: new Position(newX, newY),
     });
 
     return true;
@@ -230,16 +242,17 @@ export class World {
    * Get all units in the world
    */
   getAllUnits(): Array<{ unitId: string; mapId: string; position: Position }> {
-    const units: Array<{ unitId: string; mapId: string; position: Position }> = [];
-    
+    const units: Array<{ unitId: string; mapId: string; position: Position }> =
+      [];
+
     for (const [unitId, pos] of this.unitPositions.entries()) {
       units.push({
         unitId,
         mapId: pos.mapId,
-        position: pos.position
+        position: pos.position,
       });
     }
-    
+
     return units;
   }
 
@@ -248,23 +261,27 @@ export class World {
    */
   getUnitsOnMap(mapId: string): Array<{ unitId: string; position: Position }> {
     const units: Array<{ unitId: string; position: Position }> = [];
-    
+
     for (const [unitId, pos] of this.unitPositions.entries()) {
       if (pos.mapId === mapId) {
         units.push({
           unitId,
-          position: pos.position
+          position: pos.position,
         });
       }
     }
-    
+
     return units;
   }
 
   /**
    * Check if two units are adjacent on the same map
    */
-  areUnitsAdjacent(unit1Id: string, unit2Id: string, allowDiagonal: boolean = true): boolean | null {
+  areUnitsAdjacent(
+    unit1Id: string,
+    unit2Id: string,
+    allowDiagonal: boolean = true
+  ): boolean | null {
     const pos1 = this.unitPositions.get(unit1Id);
     const pos2 = this.unitPositions.get(unit2Id);
 

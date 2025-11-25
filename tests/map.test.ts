@@ -77,7 +77,7 @@ describe('Map', () => {
     const units = map.getAllUnits();
     expect(units.length).toBe(2);
     
-    const unitIds = units.map(u => u.id);
+    const unitIds = units.map(u => u.unitId);
     expect(unitIds).toContain('unit-1');
     expect(unitIds).toContain('unit-2');
   });

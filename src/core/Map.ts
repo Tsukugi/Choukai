@@ -1,4 +1,11 @@
-import type { IMap, IMapCell, TerrainType, ITerrainProperties, IMapConfig } from '../types/mapTypes';
+import type {
+  IMap,
+  IMapCell,
+  TerrainType,
+  ITerrainProperties,
+  IMapConfig,
+  IUnitPosition,
+} from '../types/mapTypes';
 import { Position } from './Position';
 
 /**
@@ -11,7 +18,12 @@ export class Map implements IMap {
   cells: IMapCell[][];
   config: IMapConfig;
 
-  constructor(width: number, height: number, name: string = 'Unnamed Map', config?: IMapConfig) {
+  constructor(
+    width: number,
+    height: number,
+    name: string = 'Unnamed Map',
+    config?: IMapConfig
+  ) {
     this.width = width;
     this.height = height;
     this.name = name;
@@ -19,9 +31,9 @@ export class Map implements IMap {
       wrapEdges: false,
       defaultTerrain: 'grass',
       defaultMovementCost: 1.0,
-      ...config
+      ...config,
     };
-    
+
     // Initialize the map grid
     this.cells = this.initializeCells();
   }
@@ -31,7 +43,7 @@ export class Map implements IMap {
    */
   private initializeCells(): IMapCell[][] {
     const cells: IMapCell[][] = [];
-    
+
     for (let y = 0; y < this.height; y++) {
       const row: IMapCell[] = [];
       for (let x = 0; x < this.width; x++) {
@@ -39,7 +51,7 @@ export class Map implements IMap {
       }
       cells.push(row);
     }
-    
+
     return cells;
   }
 
@@ -50,8 +62,8 @@ export class Map implements IMap {
     return {
       terrain: this.config.defaultTerrain || 'grass',
       properties: {
-        movementCost: this.config.defaultMovementCost || 1.0
-      }
+        movementCost: this.config.defaultMovementCost || 1.0,
+      },
     };
   }
 
@@ -102,7 +114,12 @@ export class Map implements IMap {
   /**
    * Set the terrain at the specified coordinates
    */
-  setTerrain(x: number, y: number, terrain: TerrainType, properties?: Partial<ITerrainProperties>): boolean {
+  setTerrain(
+    x: number,
+    y: number,
+    terrain: TerrainType,
+    properties?: Partial<ITerrainProperties>
+  ): boolean {
     if (!this.isValidCoordinate(x, y)) {
       return false;
     }
@@ -112,7 +129,7 @@ export class Map implements IMap {
 
     // Get default properties for the terrain type
     const terrainProps = this.getDefaultTerrainProperties(terrain);
-    
+
     // Apply custom properties
     if (properties) {
       Object.assign(terrainProps, properties);
@@ -122,7 +139,7 @@ export class Map implements IMap {
       this.cells[wrappedY][wrappedX] = {
         ...this.cells[wrappedY][wrappedX],
         terrain,
-        properties: terrainProps
+        properties: terrainProps,
       };
     } else {
       // This shouldn't happen if coordinates are valid, but for type safety
@@ -139,7 +156,7 @@ export class Map implements IMap {
     // Default properties for common terrain types
     const defaults: Record<TerrainType, ITerrainProperties> = {
       grass: { movementCost: 1.0 },
-      water: { movementCost: 2.0, movementBlocked: true }, // Units can't move through water
+      water: { movementCost: 2.0, navigable: true }, // Units can't move through water
       mountain: { movementCost: 3.0 },
       forest: { movementCost: 1.5, visibilityModifier: 0.7 },
       desert: { movementCost: 1.2 },
@@ -152,7 +169,7 @@ export class Map implements IMap {
 
     // Start with basic defaults
     const basicDefaults: ITerrainProperties = {
-      movementCost: 1.0
+      movementCost: 1.0,
     };
 
     // Get specific terrain defaults, or fall back to grass
@@ -161,7 +178,7 @@ export class Map implements IMap {
     // Return merged properties: basic -> grass fallback -> specific terrain
     return {
       ...basicDefaults,
-      ...terrainDefaults
+      ...terrainDefaults,
     };
   }
 
@@ -173,7 +190,7 @@ export class Map implements IMap {
     if (!cell) return false;
 
     // Check if terrain blocks movement
-    if (cell.properties.movementBlocked) return false;
+    if (cell.properties.navigable || cell.properties.impassable) return false;
 
     // Check if unit is occupying the space
     if (cell.occupiedBy) return false;
@@ -189,7 +206,7 @@ export class Map implements IMap {
     if (!cell) return false;
 
     // Check if terrain blocks placement
-    if (cell.properties.movementBlocked) return false;
+    if (cell.properties.navigable || cell.properties.impassable) return false;
 
     // Check if position is already occupied
     if (cell.occupiedBy) return false;
@@ -241,16 +258,17 @@ export class Map implements IMap {
   /**
    * Get all units on the map with their positions
    */
-  getAllUnits(): Array<{ id: string; position: Position }> {
-    const units: Array<{ id: string; position: Position }> = [];
+  getAllUnits(): Array<IUnitPosition> {
+    const units: Array<IUnitPosition> = [];
 
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         const cell = this.cells[y]?.[x];
         if (cell && cell.occupiedBy) {
           units.push({
-            id: cell.occupiedBy,
-            position: new Position(x, y)
+            unitId: cell.occupiedBy,
+            mapId: this.name,
+            position: new Position(x, y),
           });
         }
       }
@@ -262,7 +280,12 @@ export class Map implements IMap {
   /**
    * Get nearby cells within a specified range
    */
-  getNearbyCells(x: number, y: number, range: number, includeDiagonals: boolean = true): Array<{ x: number; y: number; cell: IMapCell }> {
+  getNearbyCells(
+    x: number,
+    y: number,
+    range: number,
+    includeDiagonals: boolean = true
+  ): Array<{ x: number; y: number; cell: IMapCell }> {
     const cells: Array<{ x: number; y: number; cell: IMapCell }> = [];
 
     for (let dy = -range; dy <= range; dy++) {
@@ -289,21 +312,26 @@ export class Map implements IMap {
   /**
    * Get a subregion of the map
    */
-  getRegion(topLeftX: number, topLeftY: number, width: number, height: number): IMapCell[][] {
+  getRegion(
+    topLeftX: number,
+    topLeftY: number,
+    width: number,
+    height: number
+  ): IMapCell[][] {
     const region: IMapCell[][] = [];
-    
+
     for (let y = 0; y < height; y++) {
       const row: IMapCell[] = [];
       for (let x = 0; x < width; x++) {
         const cellX = topLeftX + x;
         const cellY = topLeftY + y;
-        
+
         const cell = this.getCell(cellX, cellY);
         row.push(cell ? { ...cell } : this.createDefaultCell());
       }
       region.push(row);
     }
-    
+
     return region;
   }
 
@@ -317,7 +345,7 @@ export class Map implements IMap {
 
     // Create a new grid with the requested size
     const newCells: IMapCell[][] = [];
-    
+
     for (let y = 0; y < newHeight; y++) {
       const row: IMapCell[] = [];
       for (let x = 0; x < newWidth; x++) {
@@ -337,7 +365,7 @@ export class Map implements IMap {
       }
       newCells.push(row);
     }
-    
+
     this.width = newWidth;
     this.height = newHeight;
     this.cells = newCells;
@@ -347,7 +375,12 @@ export class Map implements IMap {
    * Create a clone of the map
    */
   clone(name?: string): Map {
-    const newMap = new Map(this.width, this.height, name || this.name, this.config);
+    const newMap = new Map(
+      this.width,
+      this.height,
+      name || this.name,
+      this.config
+    );
 
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
@@ -357,13 +390,14 @@ export class Map implements IMap {
           // Create the new cell object dynamically to properly handle optional properties
           const baseCell = {
             terrain: originalCell.terrain,
-            properties: { ...originalCell.properties }
+            properties: { ...originalCell.properties },
           };
 
           // Only add occupiedBy property if it exists in the original (not undefined)
-          const newCell = originalCell.occupiedBy !== undefined
-            ? { ...baseCell, occupiedBy: originalCell.occupiedBy }
-            : { ...baseCell };
+          const newCell =
+            originalCell.occupiedBy !== undefined
+              ? { ...baseCell, occupiedBy: originalCell.occupiedBy }
+              : { ...baseCell };
 
           (newMap.cells[y] as IMapCell[])[x] = newCell as IMapCell;
         } else {

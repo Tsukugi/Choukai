@@ -11,7 +11,7 @@ export interface IPathfindingOptions {
 }
 
 // Map event types
-export type MapEventType = 
+export type MapEventType =
   | 'unitMoved'
   | 'terrainChanged'
   | 'unitPlaced'

@@ -36,16 +36,16 @@
     "typescript",
     "gamedev"
   ],
-  "author": "Choukai Map System",
+  "author": "Tsukugi",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/username/Choukai"
+    "url": "https://github.com/Tsukugi/Choukai"
   },
   "bugs": {
-    "url": "https://github.com/username/Choukai/issues"
+    "url": "https://github.com/Tsukugi/Choukai/issues"
   },
-  "homepage": "https://github.com/username/Choukai#readme",
+  "homepage": "https://github.com/Tsukugi/Choukai#readme",
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
@@ -60,6 +60,7 @@
     "vitest": "^1.0.0"
   },
   "dependencies": {
-    "tslib": "^2.6.2"
+    "tslib": "^2.6.2",
+    "@atsu/atago": "file:../../Atago"
   }
 }

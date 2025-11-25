@@ -10,7 +10,7 @@ export interface IPosition {
 }
 
 // Terrain types that can affect units
-export type TerrainType = 
+export type TerrainType =
   | 'grass'
   | 'water'
   | 'mountain'
@@ -28,7 +28,8 @@ export interface ITerrainProperties {
   movementCost: number; // Multiplier for movement cost
   defenseBonus?: number; // Bonus to defense when on this terrain
   visibilityModifier?: number; // How much this terrain affects visibility
-  [key: string]: any; // Allow for additional custom properties
+  impassable?: boolean; // By no means can units pass through this terrain
+  navigable?: boolean; // Whether units can navigate through this terrain
 }
 
 // Map cell definition
@@ -36,7 +37,6 @@ export interface IMapCell {
   terrain: TerrainType;
   properties: ITerrainProperties;
   occupiedBy?: string; // ID of unit occupying this cell
-  [key: string]: any; // Allow for additional custom properties
 }
 
 // Map data structure
@@ -45,5 +45,10 @@ export interface IMap {
   height: number;
   name: string;
   cells: IMapCell[][];
-  [key: string]: any; // Allow for additional custom properties
+}
+
+export interface IUnitPosition {
+  unitId: string;
+  mapId: string;
+  position: IPosition;
 }

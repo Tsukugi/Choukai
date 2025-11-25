@@ -58,7 +58,7 @@ console.log(`Is (1,1) walkable? ${gameMap.isWalkable(1, 1)}`); // true
 const units = gameMap.getAllUnits();
 console.log(`Units on map: ${units.length}`);
 units.forEach(unit => {
-  console.log(`- ${unit.id} at ${unit.position.toString()}`);
+  console.log(`- ${unit.unitId} at ${unit.position.toString()}`);
 });
 
 // Create a world to manage multiple maps

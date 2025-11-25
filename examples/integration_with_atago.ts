@@ -6,35 +6,7 @@
  */
 
 import { Map, World } from '../src';
-
-// For this example, we'll simulate Atago units since we don't have the actual import
-// In a real scenario, you would import from '@atsu/atago'
-interface IUnit {
-  id: string;
-  name: string;
-  properties: Record<string, any>;
-  setProperty(name: string, value: any): void;
-  getPropertyValue<T>(name: string): T | undefined;
-}
-
-class MockAtagoUnit implements IUnit {
-  id: string;
-  name: string;
-  properties: Record<string, any> = {};
-
-  constructor(id: string, name: string) {
-    this.id = id;
-    this.name = name;
-  }
-
-  setProperty(name: string, value: any): void {
-    this.properties[name] = value;
-  }
-
-  getPropertyValue<T>(name: string): T | undefined {
-    return this.properties[name] as T | undefined;
-  }
-}
+import { BaseUnit } from '@atsu/atago';
 
 console.log('=== Choukai Example: Integration with Atago Units ===\n');
 
@@ -46,14 +18,14 @@ gameMap.setTerrain(5, 5, 'water', { movementCost: 2.5, defenseBonus: -1 });
 gameMap.setTerrain(10, 10, 'mountain', { movementCost: 4.0, defenseBonus: 2 });
 gameMap.setTerrain(15, 15, 'forest', { movementCost: 1.5, defenseBonus: 1, visibilityModifier: 0.7 });
 
-// Create mock Atago units
-const playerUnit = new MockAtagoUnit('player-1', 'Hero');
+// Create real Atago units
+const playerUnit = new BaseUnit('player-1', 'Hero', 'hero');
 playerUnit.setProperty('health', 100);
 playerUnit.setProperty('attack', 20);
 playerUnit.setProperty('defense', 10);
 playerUnit.setProperty('speed', 5);
 
-const enemyUnit = new MockAtagoUnit('enemy-1', 'Orc');
+const enemyUnit = new BaseUnit('enemy-1', 'Orc', 'monster');
 enemyUnit.setProperty('health', 80);
 enemyUnit.setProperty('attack', 25);
 enemyUnit.setProperty('defense', 8);
@@ -78,7 +50,7 @@ allUnits.forEach(unit => {
 });
 
 // Function to apply terrain effects to a unit
-function applyTerrainEffects(unit: IUnit, world: World, mapName: string) {
+function applyTerrainEffects(unit: BaseUnit, world: World, mapName: string) {
   const pos = world.getUnitPosition(unit.id);
   if (!pos || pos.mapId !== mapName) return;
 
