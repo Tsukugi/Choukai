@@ -110,19 +110,18 @@ describe('Map', () => {
   });
 
   it('should create a clone of the map', () => {
-    map.setTerrain(5, 5, 'water');
+    map.setTerrain(5, 5, 'plains'); // Use terrain that allows units
     map.placeUnit('unit-1', 5, 5);
-    
+
     const clonedMap = map.clone('Cloned Map');
     expect(clonedMap.name).toBe('Cloned Map');
     expect(clonedMap.width).toBe(map.width);
     expect(clonedMap.height).toBe(map.height);
-    
+
     // Terrain should be copied
-    expect(clonedMap.getTerrain(5, 5)).toBe('water');
-    
-    // Units should not be copied (they're not part of the cells, only references)
-    // But the occupied position should be set in the clone too
+    expect(clonedMap.getTerrain(5, 5)).toBe('plains');
+
+    // Units should be copied in the cell's occupiedBy property when cloning
     expect(clonedMap.getUnitAt(5, 5)).toBe('unit-1');
   });
 });

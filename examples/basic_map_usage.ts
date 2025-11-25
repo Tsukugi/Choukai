@@ -11,7 +11,9 @@ console.log('=== Choukai Example: Basic Map Usage ===\n');
 
 // Create a 10x10 map
 const gameMap = new Map(10, 10, 'Battlefield');
-console.log(`Created map: ${gameMap.name}, dimensions: ${gameMap.width}x${gameMap.height}`);
+console.log(
+  `Created map: ${gameMap.name}, dimensions: ${gameMap.width}x${gameMap.height}`
+);
 
 // Set different terrains on the map
 gameMap.setTerrain(5, 5, 'water');
@@ -24,7 +26,9 @@ console.log(`Terrain at (7,7): ${gameMap.getTerrain(7, 7)}`); // forest
 
 // Check movement costs for different terrains
 console.log(`Movement cost at (5,5) (water): ${gameMap.getMovementCost(5, 5)}`); // 2.0
-console.log(`Movement cost at (3,3) (mountain): ${gameMap.getMovementCost(3, 3)}`); // 3.0
+console.log(
+  `Movement cost at (3,3) (mountain): ${gameMap.getMovementCost(3, 3)}`
+); // 3.0
 console.log(`Movement cost at (1,1) (grass): ${gameMap.getMovementCost(1, 1)}`); // 1.0
 
 // Create a position
@@ -34,7 +38,9 @@ console.log(`\nCreated position: ${pos.toString()}`);
 // Calculate distance between positions
 const pos2 = new Position(5, 6);
 const distance = pos.distanceTo(pos2);
-console.log(`Distance from ${pos.toString()} to ${pos2.toString()}: ${distance}`);
+console.log(
+  `Distance from ${pos.toString()} to ${pos2.toString()}: ${distance}`
+);
 
 // Place units on the map
 console.log('\nPlacing units on the map...');
@@ -70,13 +76,15 @@ console.log(`Maps in world: ${world.getAllMaps().length}`);
 
 // Place units in the world
 world.setUnitPosition('player-1', 'Battlefield', { x: 2, y: 2 });
-world.setUnitPosition('enemy-1', 'Battlefield', { x: 8, 8 });
+world.setUnitPosition('enemy-1', 'Battlefield', { x: 8, y: 8 });
 world.setUnitPosition('forest-creature', 'Forest', { x: 7, y: 7 });
 
 console.log('\nUnits in world:');
 const allUnits = world.getAllUnits();
 allUnits.forEach(unit => {
-  console.log(`- ${unit.unitId} on map '${unit.mapId}' at ${unit.position.toString()}`);
+  console.log(
+    `- ${unit.unitId} on map '${unit.mapId}' at ${unit.position.toString()}`
+  );
 });
 
 // Move a unit
