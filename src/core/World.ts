@@ -160,7 +160,7 @@ export class World {
     // Update the unit's position in the world
     this.unitPositions.set(unitId, {
       mapId: currentPos.mapId,
-      position: new Position(newX, newY),
+      position: new Position(newX, newY, currentPos.position.z),
     });
 
     return true;

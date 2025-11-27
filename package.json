@@ -61,6 +61,6 @@
   },
   "dependencies": {
     "tslib": "^2.6.2",
-    "@atsu/atago": "file:../../Atago"
+    "@atsu/atago": "file:../Atago"
   }
 }

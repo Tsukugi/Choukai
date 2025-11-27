@@ -35,9 +35,9 @@ describe('Map', () => {
   it('should check if positions are walkable', () => {
     // Initially, most positions should be walkable
     expect(map.isWalkable(5, 5)).toBe(true);
-    
+
     // Set a blocking terrain
-    map.setTerrain(5, 5, 'water', { movementBlocked: true });
+    map.setTerrain(5, 5, 'grass', { impassable: true });
     expect(map.isWalkable(5, 5)).toBe(false);
   });
 

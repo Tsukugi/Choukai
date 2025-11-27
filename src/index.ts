@@ -6,5 +6,5 @@ export { Position } from './core/Position';
 export { World } from './core/World';
 
 // Types
-export * from './types/mapTypes';
-export * from './types/positionTypes';
+export type * from './types/mapTypes';
+export type * from './types/positionTypes';

@@ -156,7 +156,7 @@ export class Map implements IMap {
     // Default properties for common terrain types
     const defaults: Record<TerrainType, ITerrainProperties> = {
       grass: { movementCost: 1.0 },
-      water: { movementCost: 2.0, navigable: true }, // Units can't move through water
+      water: { movementCost: 2.0, impassable: true }, // Units can't move through water
       mountain: { movementCost: 3.0 },
       forest: { movementCost: 1.5, visibilityModifier: 0.7 },
       desert: { movementCost: 1.2 },
@@ -189,8 +189,8 @@ export class Map implements IMap {
     const cell = this.getCell(x, y);
     if (!cell) return false;
 
-    // Check if terrain blocks movement
-    if (cell.properties.navigable || cell.properties.impassable) return false;
+    // Check if terrain blocks movement - impassable terrain cannot be traversed
+    if (cell.properties.impassable) return false;
 
     // Check if unit is occupying the space
     if (cell.occupiedBy) return false;
@@ -205,8 +205,8 @@ export class Map implements IMap {
     const cell = this.getCell(x, y);
     if (!cell) return false;
 
-    // Check if terrain blocks placement
-    if (cell.properties.navigable || cell.properties.impassable) return false;
+    // Check if terrain blocks placement - impassable terrain cannot be occupied
+    if (cell.properties.impassable) return false;
 
     // Check if position is already occupied
     if (cell.occupiedBy) return false;

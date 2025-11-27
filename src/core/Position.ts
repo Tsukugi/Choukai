@@ -1,4 +1,4 @@
-import type { IPosition } from '../types/positionTypes';
+import type { IMap, IPosition } from '../types/positionTypes';
 
 /**
  * Position class represents a coordinate in 2D or 3D space
@@ -50,14 +50,60 @@ export class Position implements IPosition {
   isAdjacentTo(other: IPosition, allowDiagonal: boolean = true): boolean {
     const dx = Math.abs(this.x - other.x);
     const dy = Math.abs(this.y - other.y);
-    
+
     if (allowDiagonal) {
       // Adjacent includes diagonal positions
-      return dx <= 1 && dy <= 1 && (dx + dy > 0);
+      return dx <= 1 && dy <= 1 && dx + dy > 0;
     } else {
       // Only horizontal/vertical adjacency
       return (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
     }
+  }
+
+  /**
+   * Checks if a position is within map bounds
+   * @param position - Position to check
+   * @param map - Map to check against
+   * @returns True if position is within bounds
+   */
+  isPositionInBounds(position: Position, map: IMap): boolean {
+    return (
+      position.x >= 0 &&
+      position.x < map.width &&
+      position.y >= 0 &&
+      position.y < map.height
+    );
+  }
+
+  /**
+   * Gets all positions adjacent to the given position within map bounds
+   * @param position - Center position
+   * @param map - Map to check bounds against
+   * @returns Array of adjacent positions
+   */
+  getAdjacentPositions(position: Position, map: IMap): Position[] {
+    const directions = [
+      { x: -1, y: 0 },
+      { x: 1, y: 0 },
+      { x: 0, y: -1 },
+      { x: 0, y: 1 },
+    ];
+
+    return directions
+      .map(
+        dir => ({ x: position.x + dir.x, y: position.y + dir.y }) as Position
+      )
+      .filter(pos => this.isPositionInBounds(pos, map));
+  }
+
+  /**
+   * Checks if two positions are equal
+   * @param pos1 - First position
+   * @param pos2 - Second position
+   * @returns True if positions are equal
+   */
+  positionsEqual(pos1: Position, pos2: Position): boolean {
+    return pos1.x === pos2.x && pos1.y === pos2.y;
   }
 
   /**
@@ -99,9 +145,7 @@ export class Position implements IPosition {
    * Check if two positions are equal
    */
   equals(other: IPosition): boolean {
-    return this.x === other.x && 
-           this.y === other.y && 
-           this.z === other.z;
+    return this.x === other.x && this.y === other.y && this.z === other.z;
   }
 
   /**
@@ -122,11 +166,14 @@ export class Position implements IPosition {
   directionTo(other: IPosition): { x: number; y: number; z?: number } {
     const dx = other.x - this.x;
     const dy = other.y - this.y;
-    const dzValue = (this.z !== undefined && other.z !== undefined)
-      ? other.z - this.z
-      : undefined;
+    const dzValue =
+      this.z !== undefined && other.z !== undefined
+        ? other.z - this.z
+        : undefined;
 
-    const magnitude = Math.sqrt(dx * dx + dy * dy + (dzValue !== undefined ? dzValue * dzValue : 0));
+    const magnitude = Math.sqrt(
+      dx * dx + dy * dy + (dzValue !== undefined ? dzValue * dzValue : 0)
+    );
 
     if (magnitude === 0) {
       if (dzValue !== undefined) {
@@ -138,7 +185,7 @@ export class Position implements IPosition {
 
     const result = {
       x: dx / magnitude,
-      y: dy / magnitude
+      y: dy / magnitude,
     };
 
     if (dzValue !== undefined) {

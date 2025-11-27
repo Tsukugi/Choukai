@@ -29,7 +29,6 @@ export interface ITerrainProperties {
   defenseBonus?: number; // Bonus to defense when on this terrain
   visibilityModifier?: number; // How much this terrain affects visibility
   impassable?: boolean; // By no means can units pass through this terrain
-  navigable?: boolean; // Whether units can navigate through this terrain
 }
 
 // Map cell definition
