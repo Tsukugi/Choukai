@@ -37,23 +37,22 @@ describe('World', () => {
   it('should remove a map', () => {
     const newMap = new Map(5, 5, 'ToRemove Map');
     world.addMap(newMap);
-    
-    expect(world.getMap('ToRemove Map')).not.toBeUndefined();
-    
+
+    expect(() => world.getMap('ToRemove Map')).not.toThrow();
+
     const removed = world.removeMap('ToRemove Map');
     expect(removed).toBe(true);
-    expect(world.getMap('ToRemove Map')).toBeUndefined();
+    expect(() => world.getMap('ToRemove Map')).toThrow();
   });
 
   it('should set and get unit position', () => {
     const success = world.setUnitPosition('unit-1', 'Test Map', { x: 5, y: 5 });
     expect(success).toBe(true);
-    
+
     const position = world.getUnitPosition('unit-1');
-    expect(position).not.toBeUndefined();
-    expect(position?.mapId).toBe('Test Map');
-    expect(position?.position.x).toBe(5);
-    expect(position?.position.y).toBe(5);
+    expect(position.mapId).toBe('Test Map');
+    expect(position.position.x).toBe(5);
+    expect(position.position.y).toBe(5);
   });
 
   it('should fail to set unit position on invalid map', () => {
@@ -97,12 +96,11 @@ describe('World', () => {
 
   it('should remove a unit', () => {
     world.setUnitPosition('unit-1', 'Test Map', { x: 5, y: 5 });
-    
+
     const removed = world.removeUnit('unit-1');
     expect(removed).toBe(true);
-    
-    const position = world.getUnitPosition('unit-1');
-    expect(position).toBeUndefined();
+
+    expect(() => world.getUnitPosition('unit-1')).toThrow();
   });
 
   it('should get all units in the world', () => {
@@ -142,15 +140,15 @@ describe('World', () => {
     expect(distance).toBe(5); // 3-4-5 triangle
   });
 
-  it('should return null for distance between units on different maps', () => {
+  it('should throw an error for distance between units on different maps', () => {
     world.setUnitPosition('unit-1', 'Test Map', { x: 0, y: 0 });
-    
-    const secondMap = new Map(10, 10, 'Second Map');
-    world.addMap(secondMap);
-    world.setUnitPosition('unit-2', 'Second Map', { x: 10, y: 10 });
-    
-    const distance = world.getDistanceBetweenUnits('unit-1', 'unit-2');
-    expect(distance).toBeNull();
+
+    const differentMap = new Map(10, 10, 'Different Map');
+    world.addMap(differentMap);
+    const success = world.setUnitPosition('unit-2', 'Different Map', { x: 5, y: 5 });  // Within map bounds
+    expect(success).toBe(true); // Verify that the unit placement succeeded
+
+    expect(() => world.getDistanceBetweenUnits('unit-1', 'unit-2')).toThrow('Units are on different maps');
   });
 
   it('should check if units are adjacent', () => {
@@ -161,12 +159,11 @@ describe('World', () => {
     expect(adjacent).toBe(true);
   });
 
-  it('should return null for adjacency check if one or both units don\'t exist', () => {
+  it('should throw an error for adjacency check if one or both units don\'t exist', () => {
     world.setUnitPosition('unit-1', 'Test Map', { x: 5, y: 5 });
-    
+
     // unit-2 doesn't exist
-    const adjacent = world.areUnitsAdjacent('unit-1', 'unit-2');
-    expect(adjacent).toBeNull();
+    expect(() => world.areUnitsAdjacent('unit-1', 'unit-2')).toThrow();
   });
 
   it('should return false for adjacency check if units are on different maps', () => {
@@ -182,14 +179,14 @@ describe('World', () => {
 
   it('should clear the world', () => {
     world.setUnitPosition('unit-1', 'Test Map', { x: 5, y: 5 });
-    
+
     const secondMap = new Map(10, 10, 'Second Map');
     world.addMap(secondMap);
-    
+
     world.clear();
-    
+
     expect(world.getAllMaps().length).toBe(0);
     expect(world.getAllUnits().length).toBe(0);
-    expect(world.getUnitPosition('unit-1')).toBeUndefined();
+    expect(() => world.getUnitPosition('unit-1')).toThrow();
   });
 });

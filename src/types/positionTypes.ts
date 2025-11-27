@@ -2,6 +2,8 @@
  * Map and Position Types
  */
 
+import type { Position } from "../core/Position";
+
 // Basic position coordinates
 export interface IPosition {
   x: number;
@@ -49,5 +51,5 @@ export interface IMap {
 export interface IUnitPosition {
   unitId: string;
   mapId: string;
-  position: IPosition;
+  position: Position;
 }

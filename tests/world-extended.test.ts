@@ -20,19 +20,18 @@ describe('World - Extended functionality', () => {
     expect(success).toBe(true);
 
     const retrievedPosition = world.getUnitPosition('unit-3d');
-    expect(retrievedPosition).toBeDefined();
-    expect(retrievedPosition?.position.x).toBe(5);
-    expect(retrievedPosition?.position.y).toBe(5);
-    expect(retrievedPosition?.position.z).toBe(2);
+    expect(retrievedPosition.position.x).toBe(5);
+    expect(retrievedPosition.position.y).toBe(5);
+    expect(retrievedPosition.position.z).toBe(2);
 
     // Move the unit and verify z-coordinate is preserved
     const moved = world.moveUnit('unit-3d', 6, 6); // Only x,y change
     expect(moved).toBe(true);
 
     const newPosition = world.getUnitPosition('unit-3d');
-    expect(newPosition?.position.x).toBe(6);
-    expect(newPosition?.position.y).toBe(6);
-    expect(newPosition?.position.z).toBe(2); // z-coordinate should be preserved
+    expect(newPosition.position.x).toBe(6);
+    expect(newPosition.position.y).toBe(6);
+    expect(newPosition.position.z).toBe(2); // z-coordinate should be preserved
   });
 
   it('should handle removal of units when removing a map', () => {
@@ -49,14 +48,14 @@ describe('World - Extended functionality', () => {
     expect(removed).toBe(true);
 
     // All units from the removed map should be gone
-    expect(world.getUnitPosition('unit-1')).toBeUndefined();
-    expect(world.getUnitPosition('unit-2')).toBeUndefined();
-    
+    expect(() => world.getUnitPosition('unit-1')).toThrow();
+    expect(() => world.getUnitPosition('unit-2')).toThrow();
+
     // Unit on the second map should still exist
-    expect(world.getUnitPosition('unit-3')).toBeDefined();
+    expect(() => world.getUnitPosition('unit-3')).not.toThrow();
 
     // The map should no longer exist
-    expect(world.getMap('Test Map')).toBeUndefined();
+    expect(() => world.getMap('Test Map')).toThrow();
   });
 
   it('should return correct results for adjacent units with different diagonal options', () => {
@@ -111,7 +110,7 @@ describe('World - Extended functionality', () => {
 
   it('should handle edge cases with map operations', () => {
     // Try to get a non-existent map
-    expect(world.getMap('NonExistent Map')).toBeUndefined();
+    expect(() => world.getMap('NonExistent Map')).toThrow();
 
     // Try to remove a non-existent map
     expect(world.removeMap('NonExistent Map')).toBe(false);
@@ -120,11 +119,11 @@ describe('World - Extended functionality', () => {
     expect(world.getUnitsOnMap('NonExistent Map')).toEqual([]);
 
     // Try operations on non-existent units
-    expect(world.getUnitPosition('NonExistentUnit')).toBeUndefined();
+    expect(() => world.getUnitPosition('NonExistentUnit')).toThrow();
     expect(world.removeUnit('NonExistentUnit')).toBe(false);
     expect(world.moveUnit('NonExistentUnit', 5, 5)).toBe(false);
     expect(world.moveUnitToMap('NonExistentUnit', 'Test Map', 5, 5)).toBe(false);
-    expect(world.getDistanceBetweenUnits('NonExistentUnit', 'AnotherUnit')).toBeNull();
-    expect(world.areUnitsAdjacent('NonExistentUnit', 'AnotherUnit')).toBeNull();
+    expect(() => world.getDistanceBetweenUnits('NonExistentUnit', 'AnotherUnit')).toThrow();
+    expect(() => world.areUnitsAdjacent('NonExistentUnit', 'AnotherUnit')).toThrow();
   });
 });
