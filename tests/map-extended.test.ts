@@ -108,14 +108,12 @@ describe('Map - Extended functionality', () => {
   it('should clone map with custom name', () => {
     const map = new Map(5, 5, 'Original Map');
     map.setTerrain(2, 2, 'plains'); // Use walkable terrain
-    map.placeUnit('unit-1', 2, 2);
 
     const clonedMap = map.clone('Cloned Map');
     expect(clonedMap.name).toBe('Cloned Map');
     expect(clonedMap.width).toBe(map.width);
     expect(clonedMap.height).toBe(map.height);
     expect(clonedMap.getTerrain(2, 2)).toBe('plains');
-    expect(clonedMap.getUnitAt(2, 2)).toBe('unit-1');
   });
 
   it('should get terrain properties correctly', () => {

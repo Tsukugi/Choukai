@@ -41,46 +41,6 @@ describe('Map', () => {
     expect(map.isWalkable(5, 5)).toBe(false);
   });
 
-  it('should place and remove units correctly', () => {
-    // Initially position should be empty
-    expect(map.getUnitAt(5, 5)).toBeUndefined();
-    
-    // Place a unit
-    const placed = map.placeUnit('unit-1', 5, 5);
-    expect(placed).toBe(true);
-    expect(map.getUnitAt(5, 5)).toBe('unit-1');
-    
-    // Position should no longer be walkable
-    expect(map.isWalkable(5, 5)).toBe(false);
-    
-    // Remove the unit
-    const removed = map.removeUnit(5, 5);
-    expect(removed).toBe(true);
-    expect(map.getUnitAt(5, 5)).toBeUndefined();
-    
-    // Position should be walkable again
-    expect(map.isWalkable(5, 5)).toBe(true);
-  });
-
-  it('should prevent placing units on occupied positions', () => {
-    map.placeUnit('unit-1', 5, 5);
-    
-    // Try to place another unit at the same position
-    const result = map.canPlaceUnitAt(5, 5);
-    expect(result).toBe(false);
-  });
-
-  it('should get all units on the map', () => {
-    map.placeUnit('unit-1', 1, 1);
-    map.placeUnit('unit-2', 2, 2);
-    
-    const units = map.getAllUnits();
-    expect(units.length).toBe(2);
-    
-    const unitIds = units.map(u => u.unitId);
-    expect(unitIds).toContain('unit-1');
-    expect(unitIds).toContain('unit-2');
-  });
 
   it('should get nearby cells correctly', () => {
     // Set some terrain around position (5, 5)
@@ -110,8 +70,7 @@ describe('Map', () => {
   });
 
   it('should create a clone of the map', () => {
-    map.setTerrain(5, 5, 'plains'); // Use terrain that allows units
-    map.placeUnit('unit-1', 5, 5);
+    map.setTerrain(5, 5, 'plains');
 
     const clonedMap = map.clone('Cloned Map');
     expect(clonedMap.name).toBe('Cloned Map');
@@ -120,9 +79,6 @@ describe('Map', () => {
 
     // Terrain should be copied
     expect(clonedMap.getTerrain(5, 5)).toBe('plains');
-
-    // Units should be copied in the cell's occupiedBy property when cloning
-    expect(clonedMap.getUnitAt(5, 5)).toBe('unit-1');
   });
 });
 

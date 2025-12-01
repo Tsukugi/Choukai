@@ -2,8 +2,6 @@
  * Map and Position Types
  */
 
-import type { Position } from "../core/Position";
-
 // Basic position coordinates
 export interface IPosition {
   x: number;
@@ -37,7 +35,6 @@ export interface ITerrainProperties {
 export interface IMapCell {
   terrain: TerrainType;
   properties: ITerrainProperties;
-  occupiedBy?: string; // ID of unit occupying this cell
 }
 
 // Map data structure
@@ -48,8 +45,3 @@ export interface IMap {
   cells: IMapCell[][];
 }
 
-export interface IUnitPosition {
-  unitId: string;
-  mapId: string;
-  position: Position;
-}

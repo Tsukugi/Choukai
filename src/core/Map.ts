@@ -4,9 +4,7 @@ import type {
   TerrainType,
   ITerrainProperties,
   IMapConfig,
-  IUnitPosition,
 } from '../types/mapTypes';
-import { Position } from './Position';
 
 /**
  * Map class represents a coordinate-based game map with terrain types
@@ -183,7 +181,7 @@ export class Map implements IMap {
   }
 
   /**
-   * Check if a position is walkable (no units blocking and not blocked terrain)
+   * Check if a position is walkable (not blocked terrain)
    */
   isWalkable(x: number, y: number): boolean {
     const cell = this.getCell(x, y);
@@ -192,90 +190,9 @@ export class Map implements IMap {
     // Check if terrain blocks movement - impassable terrain cannot be traversed
     if (cell.properties.impassable) return false;
 
-    // Check if unit is occupying the space
-    if (cell.occupiedBy) return false;
-
     return true;
   }
 
-  /**
-   * Check if a unit can occupy a specific position
-   */
-  canPlaceUnitAt(x: number, y: number): boolean {
-    const cell = this.getCell(x, y);
-    if (!cell) return false;
-
-    // Check if terrain blocks placement - impassable terrain cannot be occupied
-    if (cell.properties.impassable) return false;
-
-    // Check if position is already occupied
-    if (cell.occupiedBy) return false;
-
-    return true;
-  }
-
-  /**
-   * Place a unit at the specified coordinates
-   */
-  placeUnit(unitId: string, x: number, y: number): boolean {
-    if (!this.canPlaceUnitAt(x, y)) {
-      return false;
-    }
-
-    const wrappedX = this.getWrappedCoordinate(x, this.width);
-    const wrappedY = this.getWrappedCoordinate(y, this.height);
-
-    const cell = this.cells[wrappedY]?.[wrappedX];
-    if (!cell) {
-      return false; // This shouldn't happen if canPlaceUnitAt passed
-    }
-
-    cell.occupiedBy = unitId;
-    return true;
-  }
-
-  /**
-   * Remove a unit from the specified coordinates
-   */
-  removeUnit(x: number, y: number): boolean {
-    const cell = this.getCell(x, y);
-    if (!cell) return false;
-
-    delete cell.occupiedBy; // or set to undefined if the property exists
-    return true;
-  }
-
-  /**
-   * Get the unit ID at the specified coordinates
-   */
-  getUnitAt(x: number, y: number): string | undefined {
-    const cell = this.getCell(x, y);
-    if (!cell) return undefined;
-
-    return cell.occupiedBy;
-  }
-
-  /**
-   * Get all units on the map with their positions
-   */
-  getAllUnits(): Array<IUnitPosition> {
-    const units: Array<IUnitPosition> = [];
-
-    for (let y = 0; y < this.height; y++) {
-      for (let x = 0; x < this.width; x++) {
-        const cell = this.cells[y]?.[x];
-        if (cell && cell.occupiedBy) {
-          units.push({
-            unitId: cell.occupiedBy,
-            mapId: this.name,
-            position: new Position(x, y),
-          });
-        }
-      }
-    }
-
-    return units;
-  }
 
   /**
    * Get nearby cells within a specified range
@@ -384,20 +301,13 @@ export class Map implements IMap {
 
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
-        // Create a deep copy of the cell to ensure all properties including occupiedBy are copied
+        // Create a deep copy of the cell
         const originalCell = this.cells[y]?.[x];
         if (originalCell) {
-          // Create the new cell object dynamically to properly handle optional properties
-          const baseCell = {
+          const newCell = {
             terrain: originalCell.terrain,
             properties: { ...originalCell.properties },
           };
-
-          // Only add occupiedBy property if it exists in the original (not undefined)
-          const newCell =
-            originalCell.occupiedBy !== undefined
-              ? { ...baseCell, occupiedBy: originalCell.occupiedBy }
-              : { ...baseCell };
 
           (newMap.cells[y] as IMapCell[])[x] = newCell as IMapCell;
         } else {
