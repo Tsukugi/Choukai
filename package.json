@@ -46,6 +46,9 @@
     "url": "https://github.com/Tsukugi/TakaoEngine/issues"
   },
   "homepage": "https://github.com/Tsukugi/TakaoEngine#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
