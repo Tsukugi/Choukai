@@ -208,6 +208,42 @@ export function getDistanceBetweenPositions(
 }
 
 /**
+ * Find the nearest free tile to the origin that is not occupied.
+ */
+export function findNearestFreeTile(
+  world: World,
+  mapId: string,
+  occupiedPositions: IUnitPosition[],
+  origin: IPosition,
+  maxRadius: number = 5
+): { x: number; y: number } | null {
+  const map = world.getMap(mapId);
+  if (!map) return null;
+
+  const occupied = new Set(
+    occupiedPositions
+      .filter(pos => pos.mapId === mapId)
+      .map(pos => `${pos.position.x},${pos.position.y}`)
+  );
+
+  for (let radius = 0; radius <= maxRadius; radius++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      for (let dy = -radius; dy <= radius; dy++) {
+        if (Math.abs(dx) + Math.abs(dy) > radius) continue;
+        const nx = origin.x + dx;
+        const ny = origin.y + dy;
+        if (nx < 0 || ny < 0 || nx >= map.width || ny >= map.height) continue;
+        if (!occupied.has(`${nx},${ny}`)) {
+          return { x: nx, y: ny };
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * Check if two position objects are adjacent to each other
  * @param pos1 The first position object
  * @param pos2 The second position object
