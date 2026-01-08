@@ -156,6 +156,7 @@ export class Map implements IMap {
       grass: { movementCost: 1.0 },
       water: { movementCost: 2.0, impassable: true }, // Units can't move through water
       mountain: { movementCost: 3.0 },
+      wall: { movementCost: 99.0, impassable: true },
       forest: { movementCost: 1.5, visibilityModifier: 0.7 },
       desert: { movementCost: 1.2 },
       road: { movementCost: 0.8 },

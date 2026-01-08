@@ -9,11 +9,18 @@ export interface IPosition {
   z?: number; // Optional z-coordinate for 3D positioning
 }
 
+// Position paired with a map identifier.
+export interface IMapPosition {
+  mapId: string;
+  position: IPosition;
+}
+
 // Terrain types that can affect units
 export type TerrainType =
   | 'grass'
   | 'water'
   | 'mountain'
+  | 'wall'
   | 'forest'
   | 'desert'
   | 'road'
@@ -44,4 +51,3 @@ export interface IMap {
   name: string;
   cells: IMapCell[][];
 }
-

@@ -2,12 +2,36 @@
  * Map-specific Types
  */
 
+import type { IMapPosition, IPosition } from './positionTypes';
+
 export * from './positionTypes';
 
 // Pathfinding options
 export interface IPathfindingOptions {
   allowDiagonal?: boolean;
   heuristic?: 'manhattan' | 'euclidean' | 'chebyshev';
+}
+
+export interface GateConnection {
+  mapFrom: string;
+  positionFrom: IPosition;
+  mapTo: string;
+  positionTo: IPosition;
+  name?: string;
+  bidirectional?: boolean;
+}
+
+export interface MovementPlanOptions extends IPathfindingOptions {
+  stopWithinRange?: number;
+  occupiedPositions?: IMapPosition[];
+  gateConnections?: GateConnection[];
+  useManhattanDistance?: boolean;
+}
+
+export interface MovementPlanResult {
+  steps: IMapPosition[];
+  finalPosition: IMapPosition;
+  reachedGoal: boolean;
 }
 
 // Map event types

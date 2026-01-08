@@ -1,7 +1,12 @@
-import type { IPosition } from '../types/positionTypes';
+import type { IMapPosition, IPosition } from '../types/positionTypes';
 import { Position } from '../core/Position';
 import { World } from '../core/World';
 import type { IUnitPosition } from '@atsu/atago';
+import type {
+  GateConnection,
+  MovementPlanOptions,
+  MovementPlanResult,
+} from '../types/mapTypes';
 
 /**
  * Compute a single-tile step from one position toward another, clamped to map bounds.
@@ -393,4 +398,339 @@ export function getAdjacentPositionsToPosition<T extends IUnitPosition>(
   }
 
   return adjacentPositionObjects;
+}
+
+type MapPositionKey = string;
+
+// Use a stable string key because Map/Set don't provide value equality for objects.
+const createMapPosition = (
+  mapId: string,
+  x: number,
+  y: number
+): IMapPosition => ({
+  mapId,
+  position: new Position(x, y),
+});
+
+export const getMapPositionKey = (position: IMapPosition): MapPositionKey =>
+  `${position.mapId}:${position.position.x},${position.position.y}`;
+
+const buildOccupiedPositionSet = (
+  positions: IMapPosition[],
+  start: IMapPosition
+): Set<MapPositionKey> => {
+  const occupied = new Set<MapPositionKey>();
+
+  for (const pos of positions) {
+    const matchesStart =
+      pos.mapId === start.mapId &&
+      pos.position.x === start.position.x &&
+      pos.position.y === start.position.y;
+
+    if (matchesStart) {
+      continue;
+    }
+
+    occupied.add(getMapPositionKey(pos));
+  }
+
+  return occupied;
+};
+
+const buildGateIndex = (
+  gateConnections: GateConnection[]
+): Map<string, Map<string, GateConnection>> => {
+  const index = new Map<string, Map<string, GateConnection>>();
+
+  for (const gate of gateConnections) {
+    const gateKey = `${gate.positionFrom.x},${gate.positionFrom.y}`;
+    const mapEntry = index.get(gate.mapFrom) ?? new Map<string, GateConnection>();
+
+    if (mapEntry.has(gateKey)) {
+      throw new Error(
+        `Multiple gates share entry ${gate.mapFrom} (${gate.positionFrom.x}, ${gate.positionFrom.y})`
+      );
+    }
+
+    mapEntry.set(gateKey, gate);
+    index.set(gate.mapFrom, mapEntry);
+  }
+
+  return index;
+};
+
+const getDistance = (
+  dx: number,
+  dy: number,
+  useManhattan: boolean
+): number => {
+  if (useManhattan) {
+    return Math.abs(dx) + Math.abs(dy);
+  }
+  return Math.max(Math.abs(dx), Math.abs(dy));
+};
+
+const getGoalPositions = (
+  world: World,
+  target: IMapPosition,
+  range: number,
+  occupied: Set<MapPositionKey>,
+  useManhattan: boolean
+): IMapPosition[] => {
+  const map = world.getMap(target.mapId);
+  const positions: IMapPosition[] = [];
+
+  for (let dy = -range; dy <= range; dy++) {
+    for (let dx = -range; dx <= range; dx++) {
+      const distance = getDistance(dx, dy, useManhattan);
+      if (distance > range) {
+        continue;
+      }
+
+      const x = target.position.x + dx;
+      const y = target.position.y + dy;
+
+      if (!map.isWalkable(x, y)) {
+        continue;
+      }
+
+      const candidate = createMapPosition(target.mapId, x, y);
+      if (occupied.has(getMapPositionKey(candidate))) {
+        continue;
+      }
+
+      positions.push(candidate);
+    }
+  }
+
+  return positions;
+};
+
+/**
+ * Plan a movement path toward a target, respecting terrain, occupied tiles, and gates.
+ */
+export function planMovementSteps(
+  world: World,
+  start: IMapPosition,
+  target: IMapPosition,
+  movementRange: number,
+  options: MovementPlanOptions = {}
+): MovementPlanResult {
+  if (!Number.isFinite(movementRange) || movementRange < 0) {
+    throw new Error('Movement range must be a non-negative number');
+  }
+
+  if (options.stopWithinRange !== undefined && options.stopWithinRange < 0) {
+    throw new Error('stopWithinRange must be a non-negative number');
+  }
+
+  const startMap = world.getMap(start.mapId);
+  if (!startMap.isWalkable(start.position.x, start.position.y)) {
+    throw new Error('Start position is not walkable');
+  }
+
+  const occupied = buildOccupiedPositionSet(
+    options.occupiedPositions ?? [],
+    start
+  );
+  const gateIndex = buildGateIndex(options.gateConnections ?? []);
+  const allowDiagonal = options.allowDiagonal === true;
+  const useManhattan = options.useManhattanDistance !== false;
+
+  const directions = allowDiagonal
+    ? [
+        { dx: -1, dy: 0 },
+        { dx: 1, dy: 0 },
+        { dx: 0, dy: -1 },
+        { dx: 0, dy: 1 },
+        { dx: -1, dy: -1 },
+        { dx: -1, dy: 1 },
+        { dx: 1, dy: -1 },
+        { dx: 1, dy: 1 },
+      ]
+    : [
+        { dx: -1, dy: 0 },
+        { dx: 1, dy: 0 },
+        { dx: 0, dy: -1 },
+        { dx: 0, dy: 1 },
+      ];
+
+  let goalPositions: IMapPosition[] = [];
+
+  if (options.stopWithinRange !== undefined) {
+    goalPositions = getGoalPositions(
+      world,
+      target,
+      options.stopWithinRange,
+      occupied,
+      useManhattan
+    );
+    if (goalPositions.length === 0) {
+      throw new Error('No available goal positions within target range');
+    }
+  } else {
+    const targetMap = world.getMap(target.mapId);
+    if (!targetMap.isWalkable(target.position.x, target.position.y)) {
+      throw new Error('Target position is not walkable');
+    }
+
+    if (occupied.has(getMapPositionKey(target))) {
+      throw new Error('Target position is occupied');
+    }
+    goalPositions = [target];
+  }
+
+  const startKey = getMapPositionKey(start);
+  const goalKeys = new Set(
+    goalPositions.map(goal => getMapPositionKey(goal))
+  );
+  const startIsGoal = goalKeys.has(startKey);
+
+  if (movementRange === 0 || startIsGoal) {
+    return {
+      steps: [],
+      finalPosition: {
+        mapId: start.mapId,
+        position: new Position(
+          start.position.x,
+          start.position.y,
+          start.position.z
+        ),
+      },
+      reachedGoal: startIsGoal,
+    };
+  }
+
+  const queue: MapPositionKey[] = [startKey];
+  let queueIndex = 0;
+  const visited = new Set<MapPositionKey>([startKey]);
+  const nodes = new Map<MapPositionKey, IMapPosition>([[startKey, start]]);
+  const cameFrom = new Map<
+    MapPositionKey,
+    { prevKey: MapPositionKey; command: IMapPosition }
+  >();
+  let foundGoal: MapPositionKey | null = null;
+
+  while (queueIndex < queue.length && !foundGoal) {
+    const currentKey = queue[queueIndex];
+    queueIndex += 1;
+
+    if (!currentKey) {
+      continue;
+    }
+
+    const currentPosition = nodes.get(currentKey);
+    if (!currentPosition) {
+      continue;
+    }
+
+    const currentMap = world.getMap(currentPosition.mapId);
+
+    for (const { dx, dy } of directions) {
+      const stepX = currentPosition.position.x + dx;
+      const stepY = currentPosition.position.y + dy;
+
+      if (!currentMap.isWalkable(stepX, stepY)) {
+        continue;
+      }
+
+      const stepPosition = createMapPosition(
+        currentPosition.mapId,
+        stepX,
+        stepY
+      );
+      if (occupied.has(getMapPositionKey(stepPosition))) {
+        continue;
+      }
+
+      const gate = gateIndex
+        .get(currentPosition.mapId)
+        ?.get(`${stepX},${stepY}`);
+      let nextPosition = stepPosition;
+
+      if (gate) {
+        const destMap = world.getMap(gate.mapTo);
+        if (!destMap.isWalkable(gate.positionTo.x, gate.positionTo.y)) {
+          continue;
+        }
+
+        const destPosition = createMapPosition(
+          gate.mapTo,
+          gate.positionTo.x,
+          gate.positionTo.y
+        );
+        if (occupied.has(getMapPositionKey(destPosition))) {
+          continue;
+        }
+
+        nextPosition = destPosition;
+      }
+
+      const nextKey = getMapPositionKey(nextPosition);
+      if (visited.has(nextKey)) {
+        continue;
+      }
+
+      visited.add(nextKey);
+      nodes.set(nextKey, nextPosition);
+      cameFrom.set(nextKey, {
+        prevKey: currentKey,
+        command: stepPosition,
+      });
+
+      if (goalKeys.has(nextKey)) {
+        foundGoal = nextKey;
+        break;
+      }
+
+      queue.push(nextKey);
+    }
+  }
+
+  if (!foundGoal) {
+    throw new Error('No path found to a reachable goal');
+  }
+
+  const commands: IMapPosition[] = [];
+  const results: IMapPosition[] = [];
+  let currentKey = foundGoal;
+
+  while (currentKey !== startKey) {
+    const link = cameFrom.get(currentKey);
+    if (!link) {
+      throw new Error('Failed to reconstruct movement path');
+    }
+
+    const resultPosition = nodes.get(currentKey);
+    if (!resultPosition) {
+      throw new Error('Failed to reconstruct movement path');
+    }
+
+    commands.push(link.command);
+    results.push(resultPosition);
+    currentKey = link.prevKey;
+  }
+
+  commands.reverse();
+  results.reverse();
+
+  const maxSteps = Math.min(movementRange, commands.length);
+  const steps = commands.slice(0, maxSteps);
+  const finalPosition =
+    maxSteps > 0
+      ? results[maxSteps - 1]!
+      : {
+          mapId: start.mapId,
+          position: new Position(
+            start.position.x,
+            start.position.y,
+            start.position.z
+          ),
+        };
+
+  return {
+    steps,
+    finalPosition,
+    reachedGoal: commands.length <= movementRange,
+  };
 }
