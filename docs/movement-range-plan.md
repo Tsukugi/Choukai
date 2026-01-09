@@ -19,11 +19,12 @@ Goal: Units move multiple tiles per turn based on a movement range while Choukai
 - [x] Ensure Choukai pathing respects impassable terrain, walls, occupied tiles, and gate transitions.
 - [x] Add Choukai tests for multi-step pathing, gates, and no-path errors.
 - [x] Update Takao StoryTeller movement planning to request full paths from Choukai.
-- [ ] Add WorldManager helper to apply a movement path step-by-step.
-- [ ] Trigger Maya render after each step when a unit moves multiple tiles.
-- [ ] Update Takao docs and examples to include movement range behavior.
-- [ ] Add Takao tests for multi-step movement and collision avoidance.
+- [x] Add WorldManager helper to apply a movement path step-by-step.
+- [x] Trigger Maya render after each step when a unit moves multiple tiles.
+- [x] Update Takao docs and examples to include movement range behavior.
+- [x] Add Takao tests for multi-step movement and collision avoidance.
 
 ## Progress Notes
 - Initial plan written.
 - Choukai path planning and tests added; StoryTeller now delegates movement planning to WorldManager.
+- Takao applies movement paths step-by-step and renders per step when running Maya.
